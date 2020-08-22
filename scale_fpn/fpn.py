@@ -2,11 +2,12 @@ from torch import nn
 from .blocks import double_conv, ConvReluUpsample, SegmentationBlock
 import torch
 
-class FPN(nn.Module):        
+class FPN(nn.Module):
     def __init__(self, n_classes=1, 
                  pyramid_channels=256, 
                  segmentation_channels=256,
-                 conv_down_init = 64,conv_down_count = 4):
+                 conv_down_init = 64,conv_down_count = 4,
+                 upsamples = [0, 1, 2, 3]):
         super().__init__()
         n_smooth = conv_down_count - 1
         n_lateral = conv_down_count - 1
@@ -34,7 +35,30 @@ class FPN(nn.Module):
         
         # Last layer
         self.last_conv = nn.Conv2d(256, n_classes, kernel_size=1, stride=1, padding=0)
-        def create_bottom_up(self,conv_down_init = 64,conv_down_count = 4):
+    
+    def forward(self, x):
+        
+        # Bottom-up
+        conv_down_outputs = self.forward_conv_down(x)
+
+        # Top-down
+        top_down_outputs = self.forward_top_down(conv_down_outputs)
+
+        # Smooth
+        top_down_outputs_smooth = self.forward_smooth(top_down_outputs)
+        
+        # Segmentation
+        _, _, h, w = top_down_outputs_smooth[-1]['p2'].size()
+        final_p = self.get_final_p_outputs(top_down_outputs_smooth)
+        feature_pyramid = [seg_block(p) for seg_block, p in zip(self.seg_blocks, final_p)]
+        
+        final_p_count = len(final_p)
+        out = self.upsample(self.last_conv(sum(feature_pyramid)), final_p_count * h, final_p_count * w)
+        
+        out = torch.sigmoid(out)
+        return out
+
+    def create_bottom_up(self,conv_down_init = 64,conv_down_count = 4):
         self.conv_down_count = conv_down_count
 
         self.conv_down1 = double_conv(3, conv_down_init)
@@ -57,7 +81,7 @@ class FPN(nn.Module):
           lateral_cur = int(lateral_init*(1/(2**i_l)))
           print(f'create_lateral:: lateral_cur: {lateral_cur}')
           setattr(self,f'latlayer{i_l+1}',nn.Conv2d(lateral_cur, 256, kernel_size=1, stride=1, padding=0))
-
+           
     def upsample_add(self, x, y):
         _,_,H,W = y.size()
         upsample = nn.Upsample(size=(H,W), mode='bilinear', align_corners=True) 
@@ -122,25 +146,3 @@ class FPN(nn.Module):
           print(f'get_final_p_outputs:: {current_p.keys()}')
           final_p.append(current_p[f'p{i+2}'])
         return final_p
-
-    def forward(self, x):
-        
-        # Bottom-up
-        conv_down_outputs = self.forward_conv_down(x)
-
-        # Top-down
-        top_down_outputs = self.forward_top_down(conv_down_outputs)
-
-        # Smooth
-        top_down_outputs_smooth = self.forward_smooth(top_down_outputs)
-        
-        # Segmentation
-        _, _, h, w = top_down_outputs_smooth[-1]['p2'].size()
-        final_p = self.get_final_p_outputs(top_down_outputs_smooth)
-        feature_pyramid = [seg_block(p) for seg_block, p in zip(self.seg_blocks, final_p)]
-        
-        final_p_count = len(final_p)
-        out = self.upsample(self.last_conv(sum(feature_pyramid)), final_p_count * h, final_p_count * w)
-        
-        out = torch.sigmoid(out)
-        return out
