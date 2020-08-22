@@ -6,11 +6,12 @@ class FPN(nn.Module):
     def __init__(self, n_classes=1, 
                  pyramid_channels=256, 
                  segmentation_channels=256,
-                 conv_down_init = 64,conv_down_count = 4):
+                 conv_down_init = 64,conv_down_count = 4,input_channels=3):
         super().__init__()
         n_smooth = conv_down_count - 1
         n_lateral = conv_down_count - 1
         upsamples = list(range(n_lateral))
+        self.input_channels = input_channels
         # Bottom-up layers
         
         down_in_size, down_out_size = self.create_bottom_up(conv_down_init,conv_down_count)
@@ -60,7 +61,7 @@ class FPN(nn.Module):
     def create_bottom_up(self,conv_down_init = 64,conv_down_count = 4):
         self.conv_down_count = conv_down_count
 
-        self.conv_down1 = double_conv(3, conv_down_init)
+        self.conv_down1 = double_conv(self.input_channels, conv_down_init)
         for i in range(conv_down_count):
           down_in_size = conv_down_init* (2**i)
           down_out_size = conv_down_init* (2**(i+1))
