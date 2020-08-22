@@ -73,7 +73,7 @@ class FPN(nn.Module):
         self.n_smooth = n_smooth
         for i_s in range(1,n_smooth+1):
           print(f'create_smooth_layers:: smooth{i_s} ')
-          setattr(self,f'smooth{i_s}',nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1))
+          setattr(self,f'smooth{i_s}',nn.Conv2d(256, 256, kernel_size=self.input_channels, stride=1, padding=1))
           
     def create_lateral(self,n_lateral = 3,lateral_init = 512):
         self.n_lateral = n_lateral
