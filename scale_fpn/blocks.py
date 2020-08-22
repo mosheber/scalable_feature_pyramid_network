@@ -1,11 +1,11 @@
 from torch import nn
 import torch
 
-def double_conv(in_channels, out_channels):
+def double_conv(in_channels, out_channels,kernel_size=3):
     return nn.Sequential(
-        nn.Conv2d(in_channels, out_channels, 3, padding=1),
+        nn.Conv2d(in_channels, out_channels, kernel_size, padding=1),
         nn.ReLU(inplace=True),
-        nn.Conv2d(out_channels, out_channels, 3, padding=1),
+        nn.Conv2d(out_channels, out_channels, kernel_size, padding=1),
         nn.ReLU(inplace=True)
         )
         
