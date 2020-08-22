@@ -61,12 +61,12 @@ class FPN(nn.Module):
     def create_bottom_up(self,conv_down_init = 64,conv_down_count = 4):
         self.conv_down_count = conv_down_count
 
-        self.conv_down1 = double_conv(self.input_channels, conv_down_init,self.input_channels)
+        self.conv_down1 = double_conv(self.input_channels, conv_down_init)
         for i in range(conv_down_count):
           down_in_size = conv_down_init* (2**i)
           down_out_size = conv_down_init* (2**(i+1))
           print(f'create_bottom_up:: down_in_size: {down_in_size}, down_out_size: {down_out_size}')
-          setattr(self,f'conv_down{i+2}',double_conv(down_in_size, down_out_size,self.input_channels))
+          setattr(self,f'conv_down{i+2}',double_conv(down_in_size, down_out_size))
         return down_in_size, down_out_size
 
     def create_smooth(self,n_smooth = 3):
