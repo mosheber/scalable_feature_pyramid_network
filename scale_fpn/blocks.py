@@ -1,4 +1,5 @@
 from torch import nn
+import torch
 
 def double_conv(in_channels, out_channels):
     return nn.Sequential(

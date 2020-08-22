@@ -1,5 +1,6 @@
 from torch import nn
 from .blocks import double_conv, ConvReluUpsample, SegmentationBlock
+import torch
 
 class FPN(nn.Module):        
     def __init__(self, n_classes=1, 
