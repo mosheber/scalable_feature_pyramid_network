@@ -6,8 +6,7 @@ class FPN(nn.Module):
     def __init__(self, n_classes=1, 
                  pyramid_channels=256, 
                  segmentation_channels=256,
-                 conv_down_init = 64,conv_down_count = 4,
-                 upsamples = [0, 1, 2, 3]):
+                 conv_down_init = 64,conv_down_count = 4):
         super().__init__()
         n_smooth = conv_down_count - 1
         n_lateral = conv_down_count - 1
